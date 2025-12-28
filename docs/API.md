@@ -72,7 +72,7 @@ NewPaymentService создает и возвращает новый экземп
 func (ps *PaymentService) CancelOrder(order *Order) error
 ```
 
-CancelOrder отменяет заказ, если это возможно. Проверяет текущий статус заказа перед отменой. Возвращает ошибку, если: \- заказ уже оплачен \(status == "paid"\) \- заказ уже отменен \(status == "cancelled"\) В случае успешной отмены возвращает nil и обновляет статус заказа на "cancelled".
+CancelOrder отменяет заказ, если это возможно. Проверяет текущий статус заказа перед его отменой. Возвращает ошибку, если: \- заказ уже оплачен \(status == "paid"\) \- заказ уже отменен \(status == "cancelled"\) В случае успешной отмены возвращает nil и обновляет статус заказа на "cancelled".
 
 <a name="PaymentService.ProcessPayment"></a>
 ### func \(\*PaymentService\) ProcessPayment
