@@ -52,3 +52,20 @@ func (ps *PaymentService) ProcessPayment(order *Order) error {
 	order.Status = "paid"
 	return nil
 }
+
+// CancelOrder отменяет заказ, если это возможно.
+// Проверяет текущий статус заказа перед отменой.
+// Возвращает ошибку, если:
+// - заказ уже оплачен (status == "paid")
+// - заказ уже отменен (status == "cancelled")
+// В случае успешной отмены возвращает nil и обновляет статус заказа на "cancelled".
+func (ps *PaymentService) CancelOrder(order *Order) error {
+	if order.Status == "paid" {
+		return errors.New("cannot cancel paid order")
+	}
+	if order.Status == "cancelled" {
+		return errors.New("order already cancelled")
+	}
+	order.Status = "cancelled"
+	return nil
+}
