@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+
 jobs:
 
   build:
@@ -47,6 +50,53 @@ jobs:
         go-version: '1.25'
     
     - name: Run tests
-      run: go test -v ./... 
+      run: go test -v ./...
 
+  generate-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.25'
+    
+    - name: Get module name
+      id: module
+      run: echo "MODULE_NAME=$(go list -m)" >> $GITHUB_OUTPUT
+    
+    - name: Generate documentation HTML
+      run: |
+        go install golang.org/x/tools/cmd/godoc@latest
+        
+        mkdir -p docs
+        
+        echo "Generating documentation for module: ${{ steps.module.outputs.MODULE_NAME }}"
+        
+        godoc -http=:8080 &
+        SERVER_PID=$!
+        sleep 5
+        
+        wget --recursive --no-parent \
+             --convert-links --html-extension \
+             --no-host-directories \
+             --directory-prefix=docs \
+             "http://localhost:8080/pkg/${{ steps.module.outputs.MODULE_NAME }}/"
+        
+        kill $SERVER_PID
 
+    - name: Commit and push documentation
+      run: |
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+        
+        git add docs/
+        
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "docs: regenerate documentation [skip ci]"
+          git push
+        fi
